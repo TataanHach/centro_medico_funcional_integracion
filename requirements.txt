@@ -30,10 +30,11 @@ pycparser==2.22
 pyOpenSSL==24.3.0
 python-decouple==3.8
 python-dotenv==1.0.1
+pytz==2025.2
 redis==5.2.1
 reportlab==4.2.5
 service-identity==24.2.0
-sqlparse==0.5.3
+sqlparse @ file:///C:/miniconda3/conda-bld/sqlparse_1764240088308/work
 tomli==2.2.1
 Twisted==24.11.0
 txaio==23.1.1
