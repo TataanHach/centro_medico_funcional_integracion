@@ -1,13 +1,11 @@
 {% extends 'core/base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <!-- Encabezado -->
     <div class="text-center mb-4">
         <h1 class="display-5 text-primary">Gestión de Fichas Médicas</h1>
         <p class="text-muted">Filtra y gestiona las fichas médicas de manera eficiente.</p>
     </div>
 
-    <!-- Formulario para filtrar -->
     <form method="get" class="card shadow p-4 mb-5">
         <div class="row g-3">
             <div class="col-md-4">
@@ -25,13 +23,18 @@
                     class="form-control" 
                     value="{{ request.GET.fecha|default_if_none:'' }}">
             </div>
+            
             <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100">🔍 Filtrar</button>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">🔍 Filtrar</button>
+                    <a href="{% url 'listar_fichas_medicas' %}" class="btn btn-secondary w-100">
+                        ❌ Limpiar
+                    </a>
+                </div>
             </div>
-        </div>
+            </div>
     </form>
 
-    <!-- Tabla de fichas médicas -->
     <div class="card shadow">
         <div class="card-body">
             <table class="table table-hover">
@@ -60,7 +63,6 @@
                                     <a href="{% url 'generar_ficha_pdf' ficha.id %}" class="btn btn-success">
                                         🖨️ Descargar PDF
                                     </a>
-                                    
                                 </form>
                             </td>
                         </tr>
@@ -74,12 +76,10 @@
         </div>
     </div>
 
-    <!-- Botón de volver -->
     <div class="text-center mt-4">
         <a href="{% url 'medico_dashboard' %}" class="btn btn-secondary px-5">⬅️ Volver</a>
     </div>
 
-    <!-- Paginación -->
     <div class="d-flex justify-content-center align-items-center mt-4">
         {% if fichas.has_previous %}
             <a href="?page={{ fichas.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-outline-primary mx-2">← Anterior</a>

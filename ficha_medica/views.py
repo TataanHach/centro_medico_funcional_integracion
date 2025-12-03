@@ -14,7 +14,7 @@ import logging
 import pytz
 from django.utils.timezone import make_aware
 from django.utils.timezone import localtime
-from datetime import datetime
+from datetime import datetime, date
 from django.utils import timezone
 from django.db.models import Q
 from .models import Disponibilidad, Reserva
@@ -392,13 +392,20 @@ def medico_dashboard(request):
 @login_required
 @role_required('Medico')
 def listar_fichas(request):
-    fichas = FichaMedica.objects.all()
+    fichas = FichaMedica.objects.filter(medico=request.user.medico).order_by('-fecha_creacion')
+    
     rut = request.GET.get('rut')
-    if rut: fichas = fichas.filter(paciente__rut__icontains=rut)
-    paginator = Paginator(fichas, 10)
-    return render(request, 'fichas_medicas/gestionar_fichas.html', {'fichas': paginator.get_page(request.GET.get('page'))})
+    fecha = request.GET.get('fecha') 
+    if rut: 
+        fichas = fichas.filter(paciente__rut__icontains=rut)
+    if fecha:
+        fichas = fichas.filter(fecha_creacion__date=fecha)
 
-from datetime import date  # <--- IMPORTANTE: Asegúrate de tener este import arriba
+    paginator = Paginator(fichas, 10)
+    return render(request, 'fichas_medicas/gestionar_fichas.html', {
+        'fichas': paginator.get_page(request.GET.get('page'))
+    })
+
 
 @login_required
 @role_required('Medico')
@@ -489,13 +496,21 @@ def filtrar_fichas_por_paciente(request, paciente_rut):
 @role_required('Medico')
 def gestionar_disponibilidades(request):
     medico = request.user.medico
-    disponibilidades = disponibilidades = Disponibilidad.objects.filter(
-    medico=medico
-).order_by('-fecha_disponible')
+    
+    # --- CAMBIO AQUÍ ---
+    # 1. Usamos filter con __gte (Mayor o igual a ahora)
+    # 2. Cambiamos el orden a 'fecha_disponible' (ascendente) para ver primero la cita más próxima, no la más lejana.
+    disponibilidades = Disponibilidad.objects.filter(
+        medico=medico,
+        fecha_disponible__gte=timezone.now() 
+    ).order_by('fecha_disponible')
+    # -------------------
+
     if request.method == 'POST':
         fecha = request.POST.get("fecha")
         hora = request.POST.get("hora")
         if fecha and hora:
+            # Tu lógica para crear la fecha está perfecta
             dt_naive = datetime.strptime(
                 f"{fecha} {hora}", "%Y-%m-%d %H:%M"
             )
@@ -509,6 +524,7 @@ def gestionar_disponibilidades(request):
                 ocupada=False
             )
         return redirect('gestionar_disponibilidades')
+        
     return render(request, 'fichas_medicas/gestionar_disponibilidades.html', {
         'disponibilidades': disponibilidades
     })
