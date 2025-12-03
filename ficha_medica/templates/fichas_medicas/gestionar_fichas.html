@@ -57,12 +57,6 @@
                                 <a href="{% url 'modificar_ficha' ficha.id %}" class="btn btn-warning btn-sm me-2">✏️ Modificar</a>
                                 <form action="{% url 'eliminar_ficha' ficha.id %}" method="post" class="d-inline">
                                     {% csrf_token %}
-                                    <button 
-                                        type="submit" 
-                                        class="btn btn-danger btn-sm" 
-                                        onclick="return confirm('¿Estás seguro de eliminar esta ficha médica?');">
-                                        🗑️ Eliminar
-                                    </button>
                                     <a href="{% url 'generar_ficha_pdf' ficha.id %}" class="btn btn-success">
                                         🖨️ Descargar PDF
                                     </a>

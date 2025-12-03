@@ -377,18 +377,13 @@ def obtener_reservas_activas(request):
 @role_required('Medico')
 def medico_dashboard(request):
     medico = request.user.medico
-    
-    # Obtenemos el momento exacto actual (Fecha y Hora con zona horaria)
     ahora = timezone.now()
     
-    # 2. Modificamos la consulta
     reservas_hoy = Reserva.objects.filter(
         medico=medico,
-        # Condición A: Que sean del día de hoy
         fecha_reserva__fecha_disponible__date=ahora.date(), 
-        # Condición B: Que la hora sea MAYOR (__gt) a ahora
         fecha_reserva__fecha_disponible__gt=ahora 
-    ).order_by('fecha_reserva__fecha_disponible') # 3. Opcional: Ordenarlas para ver la más próxima primero
+    ).order_by('fecha_reserva__fecha_disponible')
 
     notif = Notificacion.objects.filter(usuario=request.user, leido=False)
     
