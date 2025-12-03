@@ -1,0 +1,202 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<br><br><br><br><br>
+<h1 class="text-center">Crear Reserva</h1>
+
+<div class="container mt-4">
+    <form method="POST" id="crear-reserva-form" onkeydown="return event.key != 'Enter';">
+        {% csrf_token %}
+
+        <input type="hidden" id="rut_paciente_final" name="rut_paciente" value="">
+
+        <div class="mb-3">
+            <label for="rut_visual" class="form-label">RUT del Paciente</label>
+            <div class="input-group">
+                <input type="text" id="rut_visual" class="form-control" placeholder="12345678-9" autocomplete="off">
+                
+                <button type="button" class="btn btn-primary" id="validar-rut">Validar RUT</button>
+                
+                <button type="button" class="btn btn-secondary" id="cambiar-rut" style="display: none;">Cambiar</button>
+            </div>
+            
+            <div id="rut-error" class="mt-2 text-danger" style="display: none;"></div>
+            
+            <div id="paciente-info" class="alert alert-success mt-2" style="display: none;">
+                <strong>Paciente:</strong> <span id="nombre-paciente"></span> | 
+                <strong>Edad:</strong> <span id="edad-paciente"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="especialidad" class="form-label">Especialidad</label>
+            <select id="especialidad" name="especialidad" class="form-select" required>
+                <option value="">Seleccione una especialidad</option>
+                {% for especialidad in form.fields.especialidad.queryset %}
+                <option value="{{ especialidad.id }}">{{ especialidad.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="medico" class="form-label">Médico</label>
+            <select id="medico" name="medico" class="form-select" required>
+                <option value="">Seleccione un médico</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="fecha_reserva" class="form-label">Horas Disponibles</label>
+            <select id="fecha_reserva" name="fecha_reserva" class="form-select" required>
+                <option value="">Seleccione una hora disponible</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="motivo" class="form-label">Motivo</label>
+            <textarea id="motivo" name="motivo" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <button type="submit" id="btn-submit" class="btn btn-primary mt-3" disabled>Crear Reserva</button>
+                <a href="{% url 'recepcionista_dashboard' %}" class="btn btn-secondary mx-2">Volver</a>
+
+        <p class="text-muted mt-2 small" id="msg-aviso">* Debe validar el RUT para habilitar el botón.</p>
+    </form>
+
+    {% if form.errors %}
+    <div class="alert alert-danger mt-3">
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li><strong>{{ field }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// --------------------------
+// LÓGICA DE VALIDACIÓN DE RUT (NUEVA)
+// --------------------------
+const btnValidar = document.getElementById("validar-rut");
+const btnCambiar = document.getElementById("cambiar-rut");
+const rutVisualInput = document.getElementById("rut_visual");
+const rutFinalInput = document.getElementById("rut_paciente_final"); // El oculto
+const infoBox = document.getElementById("paciente-info");
+const errorBox = document.getElementById("rut-error");
+const btnSubmit = document.getElementById("btn-submit");
+const msgAviso = document.getElementById("msg-aviso");
+
+// Función para validar
+btnValidar.addEventListener("click", function () {
+    const rut = rutVisualInput.value.trim();
+
+    // Limpiar estados previos
+    errorBox.style.display = "none";
+    infoBox.style.display = "none";
+
+    if (!rut) {
+        errorBox.textContent = "Por favor ingrese un RUT.";
+        errorBox.style.display = "block";
+        return;
+    }
+
+    fetch(`/api/validar_rut/?rut=${rut}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Paciente no encontrado");
+            return res.json();
+        })
+        .then(data => {
+            if (data.error) { throw new Error(data.error); }
+
+            // 1. Mostrar datos visuales
+            document.getElementById("nombre-paciente").textContent = data.nombre;
+            document.getElementById("edad-paciente").textContent = data.edad ?? "No registrada";
+            infoBox.style.display = "block";
+
+            // 2. LLENAR EL CAMPO OCULTO (Esto permite enviar el form)
+            rutFinalInput.value = rut;
+
+            // 3. Bloquear input visual y cambiar botones
+            rutVisualInput.readOnly = true;
+            btnValidar.style.display = "none";
+            btnCambiar.style.display = "inline-block";
+
+            // 4. Habilitar el botón de crear reserva
+            btnSubmit.disabled = false;
+            msgAviso.style.display = "none";
+        })
+        .catch(err => {
+            errorBox.textContent = "RUT no encontrado o inválido.";
+            errorBox.style.display = "block";
+            // Asegurar que todo siga bloqueado si falla
+            limpiarValidacion(); 
+        });
+});
+
+// Función para resetear/cambiar (Borra la validación)
+btnCambiar.addEventListener("click", function() {
+    limpiarValidacion();
+    rutVisualInput.value = "";
+    rutVisualInput.focus();
+    infoBox.style.display = "none";
+});
+
+// Función auxiliar que bloquea el formulario
+function limpiarValidacion() {
+    rutFinalInput.value = ""; // Borra el dato que va al servidor
+    rutVisualInput.readOnly = false;
+    btnValidar.style.display = "inline-block";
+    btnCambiar.style.display = "none";
+    btnSubmit.disabled = true; // Bloquea el botón submit
+    msgAviso.style.display = "block";
+}
+
+// Detector de escritura: Si el usuario borra algo manualmente, bloqueamos
+rutVisualInput.addEventListener("input", function() {
+    if(rutFinalInput.value !== "") {
+        limpiarValidacion();
+    }
+});
+
+
+// --------------------------
+// CARGAR MÉDICOS
+// --------------------------
+document.getElementById('especialidad').addEventListener('change', function () {
+    const especialidadId = this.value;
+    const medicoSelect = document.getElementById('medico');
+    medicoSelect.innerHTML = '<option value="">Seleccione un médico</option>';
+    if (!especialidadId) return;
+
+    fetch(`/api/medicos/?especialidad_id=${especialidadId}`)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(m => {
+                medicoSelect.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+            });
+        });
+});
+
+// --------------------------
+// CARGAR HORAS 
+// --------------------------
+document.getElementById('medico').addEventListener('change', function () {
+    const medicoId = this.value;
+    const fechaReservaSelect = document.getElementById('fecha_reserva');
+    fechaReservaSelect.innerHTML = '<option value="">Cargando horas...</option>';
+
+    if (!medicoId) return;
+    fetch(`/api/disponibilidades/?medico_id=${medicoId}`)
+        .then(res => res.json())
+        .then(data => {
+            fechaReservaSelect.innerHTML = '<option value="">Seleccione una hora disponible</option>';
+            data.forEach(d => {
+                fechaReservaSelect.innerHTML += `<option value="${d.id}">${d.fecha_hora}</option>`;
+            });
+        });
+});
+</script>
+{% endblock %}

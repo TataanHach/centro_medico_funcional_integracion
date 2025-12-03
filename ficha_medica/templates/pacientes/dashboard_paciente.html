@@ -1,0 +1,103 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1 class="display-5 text-primary">Mi Portal de Salud</h1>
+            <p class="lead text-muted">Bienvenido, <strong>{{ user.first_name }} {{ user.last_name }}</strong></p>
+        </div>
+    </div>
+
+    <div class="row mb-4 g-3">
+        <div class="col-md-6">
+            <a href="{% url 'mis_fichas' %}" class="card shadow-sm text-decoration-none h-100 hover-card">
+                <div class="card-body text-center text-primary">
+                    <i class="fas fa-file-medical fa-3x mb-3"></i>
+                    <h4>Ver Historial Médico</h4>
+                    <p class="text-muted small">Consulta tus diagnósticos anteriores</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'mis_recetas' %}" class="card shadow-sm text-decoration-none h-100 hover-card">
+                <div class="card-body text-center text-success">
+                    <i class="fas fa-pills fa-3x mb-3"></i>
+                    <h4>Ver Recetas</h4>
+                    <p class="text-muted small">Descarga tus indicaciones médicas</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0 text-primary"><i class="fas fa-calendar-alt me-2"></i>Mis Reservas Agendadas</h5>
+        </div>
+        <div class="card-body">
+            {% if reservas %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Médico</th>
+                                <th>Especialidad</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reserva in reservas %}
+                            <tr>
+                                <td class="fw-bold">{{ reserva.fecha_reserva.fecha_disponible|date:"d/m/Y" }}</td>
+                                <td class="text-primary fw-bold">{{ reserva.fecha_reserva.fecha_disponible|time:"H:i" }}</td>
+                                <td>{{ reserva.medico.user.first_name }} {{ reserva.medico.user.last_name }}</td>
+                                <td>{{ reserva.medico.especialidad }}</td>
+                                <td class="text-center">
+                                    <button onclick="confirmarCancelacion('{% url 'cancelar_reserva_paciente' reserva.id %}')" 
+                                            class="btn btn-outline-danger btn-sm">
+                                        Cancelar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p>No tienes horas agendadas próximamente.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarCancelacion(url) {
+        Swal.fire({
+            title: '¿Cancelar hora?',
+            text: "Se liberará el cupo médico.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+</script>
+
+<style>
+    .hover-card:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}

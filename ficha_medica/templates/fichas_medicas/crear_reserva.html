@@ -1,0 +1,123 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Crear Reserva</h1>
+
+    <div class="card shadow p-4">
+        <form method="POST" id="form-reserva" onkeydown="return event.key != 'Enter';">
+            {% csrf_token %}
+            
+            <input type="hidden" id="rut_paciente_confirmado" name="rut_paciente" value="">
+
+            <h5 class="text-primary mb-3">Datos del Paciente</h5>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="rut_visual" class="form-label">RUT del Paciente</label>
+                    <div class="input-group">
+                        <input type="text" id="rut_visual" class="form-control" 
+                               placeholder="Ej: 12345678-9" autocomplete="off"
+                               oninput="limpiarValidacion()">
+                        
+                        <button type="button" id="btn-validar" class="btn btn-primary" onclick="validarRut()">
+                            <i class="fas fa-search"></i> Validar
+                        </button>
+                    </div>
+                    <small class="text-muted">Debe validar para habilitar el botón.</small>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="nombre_paciente" class="form-label">Nombre</label>
+                    <input type="text" id="nombre_paciente" class="form-control" readonly>
+                </div>
+                <div class="col-md-4">
+                    <label for="edad_paciente" class="form-label">Edad</label>
+                    <input type="text" id="edad_paciente" class="form-control" readonly>
+                </div>
+            </div>
+
+            <hr>
+            <h5 class="text-primary mb-3">Detalles de la Reserva</h5>
+            
+            <style> #id_paciente { display: none; } label[for="id_paciente"] { display: none; } </style>
+            {{ form.as_p }}
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" id="btn-submit" class="btn btn-success btn-lg" disabled>
+                    Crear Reserva
+                </button>
+                <div id="mensaje-alerta" class="alert alert-warning text-center mt-2">
+                    <i class="fas fa-exclamation-triangle"></i> Complete la validación del RUT.
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger mt-3">
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li><strong>{{ field }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function limpiarValidacion() {
+        // 1. Borrar el dato REAL que va al servidor
+        document.getElementById('rut_paciente_confirmado').value = "";
+        
+        // 2. Limpiar campos visuales
+        document.getElementById('nombre_paciente').value = "";
+        document.getElementById('edad_paciente').value = "";
+
+        // 3. Bloquear botón
+        document.getElementById('btn-submit').disabled = true;
+        document.getElementById('mensaje-alerta').style.display = 'block';
+    }
+
+    function validarRut() {
+        var rutVisual = document.getElementById('rut_visual').value.trim();
+
+        if (!rutVisual) {
+            Swal.fire('Atención', 'Ingrese un RUT', 'warning');
+            return;
+        }
+
+        fetch(`/api/validar_rut/?rut=${rutVisual}`)
+            .then(response => {
+                if (!response.ok) throw new Error('No encontrado');
+                return response.json();
+            })
+            .then(data => {
+                // Rellenar visualmente
+                document.getElementById('nombre_paciente').value = data.nombre;
+                document.getElementById('edad_paciente').value = data.edad || "Sin registro";
+
+                // === CLAVE DEL ÉXITO ===
+                // Llenamos el input oculto con el RUT validado
+                document.getElementById('rut_paciente_confirmado').value = rutVisual;
+
+                // Habilitar botón
+                document.getElementById('btn-submit').disabled = false;
+                document.getElementById('mensaje-alerta').style.display = 'none';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Validado',
+                    text: data.nombre,
+                    timer: 1000,
+                    showConfirmButton: false
+                });
+            })
+            .catch(error => {
+                limpiarValidacion();
+                Swal.fire('Error', 'Paciente no encontrado.', 'error');
+            });
+    }
+</script>
+{% endblock %}

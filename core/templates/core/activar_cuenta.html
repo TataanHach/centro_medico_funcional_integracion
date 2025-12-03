@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h4>Activación de Cuenta</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Ingresa tu RUT y Correo para verificar tu identidad y crear tu nueva contraseña.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">RUT</label>
+                            {{ form.rut }}
+                            <div class="text-danger small">{{ form.rut.errors.0 }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Correo Electrónico</label>
+                            {{ form.email }}
+                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nueva Contraseña</label>
+                                {{ form.password_1 }}
+                                <div class="text-danger small">{{ form.password_1.errors.0 }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Confirmar</label>
+                                {{ form.password_2 }}
+                                <div class="text-danger small">{{ form.password_2.errors.0 }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">Activar Cuenta</button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

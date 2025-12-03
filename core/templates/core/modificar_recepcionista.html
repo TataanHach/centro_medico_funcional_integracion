@@ -1,0 +1,68 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="display-5">Modificar Recepcionista</h2>
+        <p class="lead">Actualiza la información del recepcionista.</p>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="row">
+                    <!-- Nombre -->
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" 
+                               value="{{ recepcionista.user.first_name }}" required>
+                    </div>
+                    <!-- Apellido -->
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" 
+                               value="{{ recepcionista.user.last_name }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- RUT -->
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label">RUT</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="{{ recepcionista.user.username }}" required>
+                    </div>
+                    <!-- Teléfono -->
+                    <div class="col-md-6 mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono" name="telefono" 
+                               value="{{ recepcionista.telefono }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Dirección -->
+                    <div class="col-md-6 mb-3">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <textarea class="form-control" id="direccion" name="direccion" rows="2">{{ recepcionista.direccion }}</textarea>
+                    </div>
+                    <!-- Fecha de Contratación -->
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha_contratacion" class="form-label">Fecha de Contratación</label>
+                        <input type="date" class="form-control" id="fecha_contratacion" name="fecha_contratacion" 
+                               value="{{ recepcionista.fecha_contratacion|date:'Y-m-d' }}">
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4">Guardar Cambios</button>
+                    <a href="{% url 'listar_recepcionistas' %}" class="btn btn-secondary px-4">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

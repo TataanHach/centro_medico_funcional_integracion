@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Mis Recetas</h2>
+        <a href="{% url 'dashboard_paciente' %}" class="btn btn-secondary">Volver</a>
+    </div>
+
+    <div class="row g-4">
+        {% for receta in recetas %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-success" style="border-left: 5px solid #198754;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between text-muted mb-2">
+                            <small>{{ receta.fecha_creacion|date:"d/m/Y" }}</small>
+                            <i class="fas fa-file-prescription"></i>
+                        </div>
+                        <h5 class="card-title text-success">Dr. {{ receta.medico.user.last_name }}</h5>
+                        <p class="card-text">{{ receta.tratamiento|truncatechars:80 }}</p>
+                        
+                        <a href="{% url 'generar_ficha_pdf' receta.id %}" class="btn btn-outline-success w-100 mt-2">
+                            <i class="fas fa-download me-2"></i>Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 alert alert-warning">No hay recetas disponibles.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

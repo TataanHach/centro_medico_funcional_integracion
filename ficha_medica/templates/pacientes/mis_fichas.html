@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Historial Médico</h2>
+        <a href="{% url 'dashboard_paciente' %}" class="btn btn-secondary">Volver</a>
+    </div>
+
+    {% if fichas %}
+        <div class="accordion" id="accordionFichas">
+            {% for ficha in fichas %}
+            <div class="accordion-item mb-2 shadow-sm border-0">
+                <h2 class="accordion-header" id="heading{{ ficha.id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ ficha.id }}">
+                        <strong>{{ ficha.fecha_creacion|date:"d/m/Y" }}</strong> &nbsp;-&nbsp; Dr. {{ ficha.medico.user.last_name }} ({{ ficha.medico.especialidad }})
+                    </button>
+                </h2>
+                <div id="collapse{{ ficha.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFichas">
+                    <div class="accordion-body bg-light">
+                        <p><strong>Diagnóstico:</strong><br>{{ ficha.diagnostico }}</p>
+                        {% if ficha.observaciones %}
+                        <p><strong>Observaciones:</strong><br>{{ ficha.observaciones }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No tienes fichas médicas registradas.</div>
+    {% endif %}
+</div>
+{% endblock %}
