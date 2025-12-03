@@ -398,16 +398,31 @@ def listar_fichas(request):
     paginator = Paginator(fichas, 10)
     return render(request, 'fichas_medicas/gestionar_fichas.html', {'fichas': paginator.get_page(request.GET.get('page'))})
 
+from datetime import date  # <--- IMPORTANTE: Asegúrate de tener este import arriba
+
 @login_required
 @role_required('Medico')
 def crear_ficha_medica(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id)
+    medico_actual = request.user.medico # Obtenemos el perfil médico del usuario
+    paciente = reserva.paciente
+
+    # --- CÁLCULO DE EDAD ---
+    if paciente.fecha_nacimiento:
+        today = date.today()
+        born = paciente.fecha_nacimiento
+        # Resta los años y ajusta si aún no ha pasado el cumpleaños este año
+        edad_calculada = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+    else:
+        edad_calculada = "Sin fecha"
+    # -----------------------
+
     if request.method == 'POST':
         form = FichaMedicaForm(request.POST)
         if form.is_valid():
             ficha = form.save(commit=False)
-            ficha.paciente = reserva.paciente
-            ficha.medico = request.user.medico
+            ficha.paciente = paciente
+            ficha.medico = medico_actual
             ficha.reserva = reserva
             ficha.save()
             messages.success(request, "Ficha creada.")
@@ -416,10 +431,14 @@ def crear_ficha_medica(request, reserva_id):
         form = FichaMedicaForm()
     
     ctx = {
-        'form': form, 'reserva': reserva, 'paciente': reserva.paciente,
+        'form': form, 
+        'reserva': reserva, 
+        'paciente': paciente,
         'medico_nombre': request.user.get_full_name(),
         'rut_medico': request.user.username,
-        'edad': "No registrada"
+        
+        'edad': edad_calculada,             
+        'especialidad': medico_actual.especialidad,
     }
     return render(request, 'fichas_medicas/crear_ficha_medica.html', ctx)
 
